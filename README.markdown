@@ -1,4 +1,4 @@
-# KO -- The Crash Report Reporter
+# KO — The Crash Report Reporter
 
 KO is a small Cocoa library that scans the user's crash reports directory at startup. If it finds new crash reports, it offers to submit them to the developers' server.
 
