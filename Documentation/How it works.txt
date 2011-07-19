@@ -1,0 +1,18 @@
+On startup (in the background):
+   Look at preferences, when did we last check?
+      If we've never checked before, then
+         Set the current date
+         Stop.
+      Otherwise
+         Look in ~/Library/Logs/DiagnosticReports
+            Find any files that were created after the date we last checked
+            Prompt to submit these files to the user (on the main thread)
+               If the user agrees, send each crash report as a POST request to a URL defined in the source. Something like:
+                  http://fileability.net/ko/submit
+                     type=crash
+                     app=com.chocolatapp.Chocolat
+                     version=0.0.25
+                     date=<timestamp>
+                     blob=...
+
+
