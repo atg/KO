@@ -2,13 +2,10 @@
 #import <dispatch.h>
 
 // Call this in -applicationDidFinishLaunching:
-void KORegister() {
-	// Trigger KO at some time in the future
-}
-
 // Scans over KO_CRASH_LOG_DIRECTORY for crash logs
-static NSString *const KO_CRASH_LOG_DIRECTORY = @"~/Library/Logs/DiagnosticReports";
-void KOScan() {
+void KORegister() {
+	static NSString *const KO_CRASH_LOG_DIRECTORY = @"~/Library/Logs/DiagnosticReports";
+	
 	// Look at preferences, when did we last check?
 	NSDate *lastChecked = [[NSUserDefaults standardUserDefaults] objectForKey:@"KOLastChecked"];
 	
@@ -19,7 +16,7 @@ void KOScan() {
 	}
 	
 	// Otherwise...
-	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW), ^{
+	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 4), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW), ^{
 		NSString *directory = [KO_CRASH_LOG_DIRECTORY stringByExpandingTildeInPath];
 		
 		// Look in ~/Library/Logs/DiagnosticReports
@@ -80,7 +77,9 @@ void KOScan() {
 // Prompts the user for permission to submit the crash log, unless they've already given permission
 BOOL KOPrompt(NSArray *crashLogs) {
 	// We also want to record if we should prompt in future
-	
+	dispatch_sync(dispatch_get_main_queue(), ^{
+		
+	});
 }
 
 // Submits the crash log at `crashLog` to the server
