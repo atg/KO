@@ -12,29 +12,31 @@ void KORegister() {
 	
 	// Look at preferences, when did we last check?
 	NSDate *lastChecked = [[NSUserDefaults standardUserDefaults] objectForKey:@"KOLastChecked"];
+
+    [[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"KOLastChecked"];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 	
 	// If we've never checked before, then set the current date and stop
 	if (!lastChecked) {
-		[[NSUserDefaults standardUserDefaults] setObject:[NSDate date] forKey:@"KOLastChecked"];
 		return;
 	}
 	
 	// Look in preferences to see if we should prompt
 	__block NSInteger shouldPrompt = [[NSUserDefaults standardUserDefaults] integerForKey:@"KOShouldPrompt"];
-	if (shouldPrompt <= -1)
+    if (shouldPrompt <= -1)
 		return;
 	
 	// Otherwise...
 	dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 4), dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+
 		NSString *directory = [KO_CRASH_LOG_DIRECTORY stringByExpandingTildeInPath];
 		
 		// Look in ~/Library/Logs/DiagnosticReports
 		NSArray *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:directory error:NULL];
-		if (![contents count])
+        if (![contents count])
 			return;
 		
 		NSString *appName = [[NSRunningApplication currentApplication] localizedName];
-		
 		NSMutableArray *viablePaths = [NSMutableArray array];
 		
 		// Find any files that were created after the date we last checked
@@ -45,14 +47,15 @@ void KORegister() {
 			
 			// Get the date created
 			NSString *path = [directory stringByAppendingPathComponent:subpath];
+
 			NSDictionary *attrs = [[NSFileManager defaultManager] attributesOfItemAtPath:path error:NULL];
 			if (![attrs count])
 				continue;
 			
 			NSDate *dcreated = [attrs objectForKey:NSFileCreationDate];
-			if (!dcreated)
+            
+            if (!dcreated)
 				continue;
-			
 			NSTimeInterval dcreatedt = [dcreated timeIntervalSinceReferenceDate];
 			
 			NSTimeInterval delta = [NSDate timeIntervalSinceReferenceDate] - dcreatedt;
@@ -62,7 +65,7 @@ void KORegister() {
 				[viablePaths addObject:path];
 			}
 		}
-		
+		        
 		// No viable paths?
 		if (![viablePaths count])
 			return;
@@ -94,19 +97,21 @@ BOOL KOPrompt(NSArray *crashLogs) {
 	// We also want to record if we should prompt in future
 	dispatch_sync(dispatch_get_main_queue(), ^{
 		
-		NSInteger r = NSRunAlertPanel(@"Chocolat appears to have crashed last time it was launched. Would you like to send a problem report to the developers?", @"Send", @"Don't Send'", @"Always Send", @"Problem reports that have been sent to Apple are not passed on to developers.");
+		NSInteger r = NSRunAlertPanel(@"Send crash report?", 
+                                      @"Chocolat appears to have crashed the last time it was open.\nWould you like to send a crash report to the developers?\n\nCrash reports sent to Apple are not passed on to developers.",
+                                      @"Send", @"Always Send", @"Don't Send");
 		
 		if (r == NSAlertDefaultReturn) {
 			// Send
-			
 		}
 		else if (r == NSAlertOtherReturn) {
-			// Always send
-			[[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"KOShouldPrompt"];
-		}
-		else {
 			// Don't send
 			shouldSend = NO;
+		}
+		else {
+            // Always send
+			[[NSUserDefaults standardUserDefaults] setInteger:1 forKey:@"KOShouldPrompt"];
+			[[NSUserDefaults standardUserDefaults] synchronize];
 		}		
 	});
 	
@@ -122,10 +127,10 @@ void KOSubmit(NSURL *crashLog) {
 	NSMutableDictionary *postItems = [NSMutableDictionary dictionary];
 	[postItems setValue:@"crash" forKey:@"type"];
 	[postItems setValue:[[NSRunningApplication currentApplication] localizedName] forKey:@"app"];
-	[postItems setValue:[[[NSBundle mainBundle] infoDictionary] valueForKey:@"CHBundleVersion"] forKey:@"version"];
-	[postItems setValue:[NSNumber numberWithInteger:(NSInteger)[[NSDate date] timeIntervalSince1970]] forKey:@"date"];
+	[postItems setValue:[[[NSBundle mainBundle] infoDictionary] valueForKey:@"CFBundleVersion"] forKey:@"version"];
+	[postItems setValue:[[NSNumber numberWithInteger:(NSInteger)[[NSDate date] timeIntervalSince1970]] stringValue] forKey:@"date"];
 	[postItems setValue:crashLogString forKey:@"blob"];
-	
+	    
 	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
 	[request setURL:url];
 	
@@ -144,7 +149,6 @@ void KOSubmit(NSURL *crashLog) {
 			[postString appendString:@"&"];
 		i++;
 	}
-	
 	
 	NSData *postData = [postString dataUsingEncoding:NSUTF8StringEncoding];
 	NSString *postLength = [NSString stringWithFormat:@"%d", [postData length]];

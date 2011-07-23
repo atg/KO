@@ -1,9 +1,11 @@
 <?php
 
-$ko_db_host = ...;
-$ko_db_name = ...;
-$ko_db_user = ...;
-$ko_db_password = ...;
+// credentials.php holds my username and password for KO. You should create it and put in the following variables:
+require('credentials.php');
+// $ko_db_host = ...;
+// $ko_db_name = ...;
+// $ko_db_user = ...;
+// $ko_db_password = ...;
 
 // CREATE TABLE kocrash (id INTEGER AUTO_INCREMENT, report_type VARCHAR(16), app VARCHAR(255), version VARCHAR(255), crash_date TIMESTAMP, ip VARCHAR(39), report TEXT, PRIMARY KEY(id));
 
