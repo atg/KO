@@ -131,7 +131,7 @@ void KOSubmit(NSURL *crashLog) {
 	[postItems setValue:[[NSNumber numberWithInteger:(NSInteger)[[NSDate date] timeIntervalSince1970]] stringValue] forKey:@"date"];
 	[postItems setValue:crashLogString forKey:@"blob"];
 	    
-	NSMutableURLRequest *request = [[[NSMutableURLRequest alloc] init] autorelease];
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	[request setURL:url];
 	
 	//POST
@@ -141,7 +141,7 @@ void KOSubmit(NSURL *crashLog) {
 	int postItemsCount = [postItems count];
 	for (id key in postItems)
 	{
-		NSString *encodedValue = [NSMakeCollectable(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)[postItems valueForKey:key], NULL, CFSTR("?=&+"), kCFStringEncodingUTF8)) autorelease];
+		NSString *encodedValue = CFBridgingRelease(CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (CFStringRef)[postItems valueForKey:key], NULL, CFSTR("?=&+"), kCFStringEncodingUTF8));
 
 		[postString appendFormat:@"%@=%@", key, encodedValue];
 		
